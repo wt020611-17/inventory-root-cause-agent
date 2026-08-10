@@ -1,7 +1,9 @@
+# 构建系统：Hatchling 负责把 app 包构建成可安装的 Python 项目。
 [build-system]
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
+# 运行时依赖：这里只放应用启动和业务代码真正需要的库。
 [project]
 name = "inventory-root-cause-agent"
 version = "0.1.0"
@@ -18,6 +20,7 @@ dependencies = [
   "uvicorn[standard]>=0.34,<1.0",
 ]
 
+# 开发依赖不进入生产运行时；ui 是后续演示界面的可选依赖组。
 [project.optional-dependencies]
 dev = [
   "httpx>=0.28,<1.0",
@@ -27,17 +30,25 @@ dev = [
 ]
 ui = ["streamlit>=1.41,<2.0"]
 
+# 构建 wheel 时只打包 app，tests 和项目管理文档不会进入运行包。
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+# pytest 默认只扫描 tests，并把仓库根目录加入模块搜索路径。
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q"
 
+# Ruff 统一代码风格基线，目标 Python 版本与项目要求保持一致。
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 
+# E/F/I/UP/B 分别覆盖格式错误、逻辑错误、导入顺序、现代语法和常见缺陷。
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+# 明确 app 是本项目的一方包，使 Ruff 能正确排列标准库、第三方库和本地导入。
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
