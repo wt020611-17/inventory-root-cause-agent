@@ -1,5 +1,37 @@
-"""领域层：保存业务实体、受控枚举、阈值配置和确定性业务规则。
+"""领域层公共入口：统一导出实体、枚举与分析阈值。
 
-这一层不能依赖 FastAPI、SQLAlchemy 或具体数据库实现，因此可以脱离 Web 和数据库
-独立测试。当前文件的作用是声明 `app.domain` 为 Python 包；公共导出会在模型稳定后补充。
+调用方可以从 `app.domain` 导入稳定的领域类型，而不需要了解它们分别存放在哪个文件。
+本层只依赖 Python 标准库和 Pydantic，不依赖 API、数据库或 Agent 框架。
 """
+
+from app.domain.entities import (
+    InventoryMovement,
+    Material,
+    ProductionOrder,
+    PurchaseOrder,
+    Warehouse,
+)
+from app.domain.enums import (
+    InventoryRiskLevel,
+    MovementType,
+    ProductionOrderStatus,
+    PurchaseOrderStatus,
+    ResultStatus,
+    RootCauseType,
+)
+from app.domain.thresholds import AnalysisThresholds
+
+__all__ = [
+    "AnalysisThresholds",
+    "InventoryMovement",
+    "InventoryRiskLevel",
+    "Material",
+    "MovementType",
+    "ProductionOrder",
+    "ProductionOrderStatus",
+    "PurchaseOrder",
+    "PurchaseOrderStatus",
+    "ResultStatus",
+    "RootCauseType",
+    "Warehouse",
+]
