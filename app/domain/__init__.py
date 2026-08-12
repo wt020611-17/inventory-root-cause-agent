@@ -19,19 +19,37 @@ from app.domain.enums import (
     ResultStatus,
     RootCauseType,
 )
+from app.domain.results import (
+    AnalysisResult,
+    EvidenceItem,
+    InventoryMetrics,
+    MetricValue,
+    ResultMetadata,
+    RiskAssessment,
+    RiskListResult,
+    RootCauseCandidate,
+)
 from app.domain.thresholds import AnalysisThresholds
 
 __all__ = [
     "AnalysisThresholds",
+    "AnalysisResult",
+    "EvidenceItem",
     "InventoryMovement",
+    "InventoryMetrics",
     "InventoryRiskLevel",
     "Material",
     "MovementType",
+    "MetricValue",
     "ProductionOrder",
     "ProductionOrderStatus",
     "PurchaseOrder",
     "PurchaseOrderStatus",
     "ResultStatus",
+    "ResultMetadata",
+    "RiskAssessment",
+    "RiskListResult",
     "RootCauseType",
+    "RootCauseCandidate",
     "Warehouse",
 ]

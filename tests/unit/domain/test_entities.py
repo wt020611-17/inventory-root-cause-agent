@@ -49,6 +49,19 @@ def test_material_allows_zero_cost_boundary() -> None:
     assert material.unit_cost == Decimal("0")
 
 
+def test_material_allows_missing_cost_for_quantity_only_analysis() -> None:
+    """单位成本缺失时仍可保存物料，后续金额指标应标记不完整。"""
+    material = Material(
+        material_id="MAT-SYN-NO-COST",
+        name="待计价合成物料",
+        category="测试",
+        unit_cost=None,
+        created_date=date(2026, 1, 2),
+    )
+
+    assert material.unit_cost is None
+
+
 def test_material_rejects_negative_cost() -> None:
     """负成本属于数据质量错误，必须在实体入口拒绝。"""
     with pytest.raises(ValidationError):
@@ -86,6 +99,7 @@ def test_warehouse_accepts_non_blank_master_data() -> None:
     )
 
     assert warehouse.model_dump() == {
+        "synthetic": True,
         "warehouse_id": "WH-SYN-01",
         "name": "合成华东仓",
         "region": "华东",
@@ -449,3 +463,57 @@ def test_all_entities_reject_unknown_fields(model_type: type, valid_data: dict) 
     """五个实体都应拒绝拼错或尚未声明的输入字段。"""
     with pytest.raises(ValidationError, match="extra_forbidden"):
         model_type(**valid_data, unknown_field="unexpected")
+
+
+@pytest.mark.parametrize(
+    "model_type",
+    [Material, Warehouse, InventoryMovement, PurchaseOrder, ProductionOrder],
+)
+def test_all_entities_reject_non_synthetic_records(model_type: type) -> None:
+    """五个持久化实体都不能接受 `synthetic=false`，防止真实记录混入项目。"""
+    field_defaults = {
+        Material: {
+            "material_id": "MAT-SYN-001",
+            "name": "合成物料",
+            "category": "测试",
+            "unit_cost": Decimal("1"),
+            "created_date": date(2026, 1, 1),
+        },
+        Warehouse: {
+            "warehouse_id": "WH-SYN-01",
+            "name": "合成仓库",
+            "region": "华东",
+        },
+        InventoryMovement: {
+            "movement_id": "MOV-SYN-001",
+            "material_id": "MAT-SYN-001",
+            "warehouse_id": "WH-SYN-01",
+            "movement_type": MovementType.ADJUSTMENT,
+            "quantity": Decimal("1"),
+            "posted_at": datetime(2026, 2, 1, tzinfo=UTC),
+        },
+        PurchaseOrder: {
+            "po_id": "PO-SYN-001",
+            "material_id": "MAT-SYN-001",
+            "warehouse_id": "WH-SYN-01",
+            "ordered_qty": Decimal("10"),
+            "received_qty": Decimal("0"),
+            "planned_date": date(2026, 2, 10),
+            "actual_date": None,
+            "status": PurchaseOrderStatus.PLANNED,
+        },
+        ProductionOrder: {
+            "production_order_id": "PRD-SYN-001",
+            "material_id": "MAT-SYN-001",
+            "warehouse_id": "WH-SYN-01",
+            "planned_consumption_qty": Decimal("10"),
+            "status": ProductionOrderStatus.PLANNED,
+            "planned_start": date(2026, 3, 1),
+            "actual_start": None,
+            "due_date": date(2026, 3, 6),
+            "closed_at": None,
+        },
+    }
+
+    with pytest.raises(ValidationError):
+        model_type(**field_defaults[model_type], synthetic=False)

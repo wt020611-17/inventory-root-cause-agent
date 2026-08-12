@@ -7,7 +7,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -23,6 +23,9 @@ class _DomainEntity(BaseModel):
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
+    # 项目严禁混入真实记录；Literal[True] 使 false 无法通过领域模型校验。
+    synthetic: Literal[True] = Field(default=True, description="明确标记为纯合成数据")
+
 
 class Material(_DomainEntity):
     """物料主数据，为库存数量提供名称、类别和合成标准成本。"""
@@ -33,7 +36,11 @@ class Material(_DomainEntity):
     category: str = Field(min_length=1, description="物料业务类别")
 
     # 金额使用 Decimal，避免二进制浮点数给金额计算带来不可见误差。
-    unit_cost: Decimal = Field(ge=0, description="合成标准单位成本")
+    unit_cost: Decimal | None = Field(
+        default=None,
+        ge=0,
+        description="可选合成标准单位成本；缺失时仍允许数量分析",
+    )
     created_date: date = Field(description="物料主数据创建日期")
 
 

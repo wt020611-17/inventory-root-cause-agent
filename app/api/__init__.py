@@ -1,4 +1,15 @@
-"""API 传输层：把 HTTP 请求转换为应用服务输入，再把结果映射为稳定响应。
+"""API 传输层公共入口：负责请求校验与响应映射，不实现库存规则。"""
 
-后续 FastAPI 路由、请求模型和响应状态映射放在这里；业务计算不应写进路由函数。
-"""
+from app.api.models import (
+    AnalysisRequest,
+    HealthResponse,
+    InvalidRequestResponse,
+    RiskListRequest,
+)
+
+__all__ = [
+    "AnalysisRequest",
+    "HealthResponse",
+    "InvalidRequestResponse",
+    "RiskListRequest",
+]

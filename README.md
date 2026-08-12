@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-当前处于 **Phase 1：领域模型、合成数据与基础服务开发**。Phase 0 已于 2026-08-09 完成退出验收。
+当前处于 **Phase 1 收尾：可运行基线待提交推送**。Phase 0 已于 2026-08-09 完成退出验收，Phase 1 本地代码与退出验证已于 2026-08-12 通过。
 
 已完成：
 
@@ -16,15 +16,18 @@
 - 功能、质量与演示验收标准。
 - 工程约束、依赖清单和环境差距盘点。
 - 默认业务阈值已接受为合成数据 MVP v0.2 的可配置基线。
-- Phase 1 分层骨架、六组领域枚举、`AnalysisThresholds` 和五个领域实体已实现。
-- 85 项领域单元测试与 Ruff 静态检查已通过。
+- Phase 1 分层骨架、领域枚举、阈值、五个实体和统一结果模型已实现。
+- 固定 seed 纯合成数据生成器与整批数据质量检查已实现。
+- SQLite/SQLAlchemy 五表持久化、Repository、事务回滚和初始化命令已实现。
+- 不依赖 LLM 的库存指标、基础风险、风险清单筛选与金额排序已实现。
+- FastAPI `/health`、`/api/v1/analysis`、`/api/v1/risks` 已实现并完成真实 Uvicorn 请求验证。
+- 151 项自动化测试与 Ruff 静态检查已通过。
 - Python 3.11.9 隔离环境、精确依赖锁文件、Git 与远程仓库已就绪。
 
 尚未完成：
 
-- 领域结果模型、合成数据与后续业务代码。
-- SQLite、种子数据、Repository 与 API。
 - Agent 工作流、评测集和演示页面。
+- Phase 2 的三类根因评分、证据图和 Agent Tool。
 
 ## MVP 能力
 
@@ -69,11 +72,39 @@ SQLite / SQLAlchemy               NetworkX
 
 ## 环境状态
 
-项目要求 Python 3.11+。独立项目仓库已使用 Python 3.11.9 建立隔离环境并完成依赖导入检查；精确版本记录在 `requirements.lock`。当前下一项编码任务是测试先行实现固定 seed 的纯合成数据生成器。
+项目要求 Python 3.11+。独立项目仓库使用 Python 3.11.9；精确依赖版本记录在 `requirements.lock`。
+
+激活 Windows 虚拟环境：
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+生成固定 seed SQLite：
+
+```powershell
+python scripts/init_db.py --database data/generated/inventory_agent.db --seed 20260812
+```
+
+启动 API：
+
+```powershell
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+启动后可访问：
+
+- `GET http://127.0.0.1:8000/health`
+- `POST http://127.0.0.1:8000/api/v1/analysis`
+- `POST http://127.0.0.1:8000/api/v1/risks`
+
+运行质量门：
 
 安装开发依赖后，计划统一使用：
 
 ```powershell
-python -m pytest
+python -m pytest -p no:cacheprovider
 python -m ruff check .
 ```
+
+当前唯一 Phase 1 收尾项是复核 diff、提交并推送可运行基线；完成后再进入 Phase 2。
