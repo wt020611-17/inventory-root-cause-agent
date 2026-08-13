@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-当前处于 **Phase 2 收尾：确定性分析基线已实现并通过本地验收**。Phase 1 基线已提交并推送，Phase 2 于 2026-08-13 完成指标边界、三类根因、证据图和三个 Agent Tool。
+当前 **Phase 2 已完成并推送**。Phase 2 于 2026-08-13 完成指标边界、三类根因、证据图和三个 Agent Tool，确定性分析基线提交为 `51e424f`。
 
 已完成：
 
@@ -107,4 +107,4 @@ python -m pytest -p no:cacheprovider
 python -m ruff check .
 ```
 
-当前下一步是提交并推送 Phase 2 确定性分析基线；完成后进入 Phase 3 Agent 工作流。
+当前下一步是进入 Phase 3 LangGraph Agent 工作流。
