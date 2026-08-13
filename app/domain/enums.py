@@ -74,3 +74,20 @@ class ResultStatus(StrEnum):
     # error：执行失败；blocked：事实可保留，但因质量问题不能输出业务结论。
     ERROR = "error"
     BLOCKED = "blocked"
+
+
+class EvidenceNodeType(StrEnum):
+    """证据图只允许四类业务节点。"""
+
+    MATERIAL = "MATERIAL"
+    WAREHOUSE = "WAREHOUSE"
+    PURCHASE_ORDER = "PURCHASE_ORDER"
+    PRODUCTION_ORDER = "PRODUCTION_ORDER"
+
+
+class EvidenceRelationType(StrEnum):
+    """从业务外键派生的三类受控关系。"""
+
+    PURCHASES = "PURCHASES"
+    CONSUMES = "CONSUMES"
+    STORED_IN = "STORED_IN"

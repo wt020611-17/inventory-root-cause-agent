@@ -10,7 +10,13 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.domain.enums import InventoryRiskLevel, ResultStatus, RootCauseType
+from app.domain.enums import (
+    EvidenceNodeType,
+    EvidenceRelationType,
+    InventoryRiskLevel,
+    ResultStatus,
+    RootCauseType,
+)
 
 
 class _ResultModel(BaseModel):
@@ -46,9 +52,33 @@ class InventoryMetrics(_ResultModel):
     material_id: str = Field(min_length=1, description="被分析的合成物料标识")
     warehouse_id: str = Field(min_length=1, description="被分析的合成仓库标识")
     current_stock: MetricValue = Field(description="截至分析日期的库存数量")
+    first_receipt_date: date | None = Field(
+        default=None,
+        description="首笔有效采购入库日期；缺失时不能推断无消耗天数",
+    )
+    last_consumption_date: date | None = Field(
+        default=None,
+        description="最近一笔销售出库或生产领料日期；调拨与调整不计入",
+    )
     days_without_consumption: MetricValue = Field(description="无有效消耗天数")
+    effective_consumption_quantity: MetricValue = Field(
+        default_factory=lambda: MetricValue(
+            value=Decimal("0"),
+            unit="unit",
+            complete=True,
+        ),
+        description="观察窗口内销售出库与生产领料的绝对数量",
+    )
     average_daily_consumption: MetricValue = Field(description="观察窗口平均日消耗")
     coverage_days: MetricValue = Field(description="当前库存可覆盖的预计消耗天数")
+    stagnant_quantity: MetricValue = Field(
+        default_factory=lambda: MetricValue(
+            value=Decimal("0"),
+            unit="unit",
+            complete=True,
+        ),
+        description="满足当前呆滞规则且不在保护期内的库存数量",
+    )
     stagnant_amount: MetricValue = Field(description="风险库存数量乘以单位成本")
     infinite_coverage: bool = Field(
         default=False,
@@ -57,6 +87,10 @@ class InventoryMetrics(_ResultModel):
     partial_window: bool = Field(
         default=False,
         description="实际观察天数少于配置窗口时为真",
+    )
+    new_material_protected: bool = Field(
+        default=False,
+        description="首次入库后仍处于新物料保护期",
     )
 
     @model_validator(mode="after")
@@ -94,6 +128,10 @@ class EvidenceItem(_ResultModel):
     source_type: str = Field(min_length=1, description="证据来源类型")
     source_id: str = Field(min_length=1, description="合成流水或单据标识")
     summary: str = Field(min_length=1, description="可展示的事实摘要，不包含私有推理")
+    facts: dict[str, str | int | Decimal | date | None] = Field(
+        default_factory=dict,
+        description="可机器核对的受控证据字段",
+    )
 
 
 class RootCauseCandidate(_ResultModel):
@@ -204,4 +242,65 @@ class RiskListResult(_ResultModel):
                 raise ValueError("error risk list requires errors and no items")
         else:
             raise ValueError("risk list does not use blocked as an aggregate status")
+        return self
+
+
+class EvidenceGraphNode(_ResultModel):
+    """证据图节点；来源与 synthetic 标记不可省略。"""
+
+    node_id: str = Field(min_length=1)
+    node_type: EvidenceNodeType
+    source_type: str = Field(min_length=1)
+    source_id: str = Field(min_length=1)
+    synthetic: bool
+
+
+class EvidenceGraphEdge(_ResultModel):
+    """证据图边；关系类型固定且保存来源标识。"""
+
+    source_node_id: str = Field(min_length=1)
+    target_node_id: str = Field(min_length=1)
+    relation_type: EvidenceRelationType
+    source_id: str = Field(min_length=1)
+
+
+class EvidencePath(_ResultModel):
+    """从目标物料可追溯的一条受限业务路径。"""
+
+    node_ids: list[str] = Field(min_length=2)
+    relation_types: list[EvidenceRelationType] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_path_shape(self) -> Self:
+        if len(self.relation_types) != len(self.node_ids) - 1:
+            raise ValueError("path must contain exactly one relation per hop")
+        return self
+
+
+class EvidenceGraphResult(_ResultModel):
+    """受限制的图查询结果，统一表达 ok、empty、blocked 与 error。"""
+
+    metadata: ResultMetadata
+    message: str = Field(min_length=1)
+    nodes: list[EvidenceGraphNode] = Field(default_factory=list)
+    edges: list[EvidenceGraphEdge] = Field(default_factory=list)
+    paths: list[EvidencePath] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_status_payload(self) -> Self:
+        status = self.metadata.status
+        if status is ResultStatus.OK:
+            if not self.nodes or not self.edges or not self.paths or self.blockers or self.errors:
+                raise ValueError("ok graph result requires graph facts only")
+        elif status is ResultStatus.EMPTY:
+            if self.nodes or self.edges or self.paths or self.blockers or self.errors:
+                raise ValueError("empty graph result must not fabricate facts")
+        elif status is ResultStatus.BLOCKED:
+            if not self.blockers or self.paths or self.errors:
+                raise ValueError("blocked graph result requires blockers and no paths")
+        elif status is ResultStatus.ERROR:
+            if not self.errors or self.nodes or self.edges or self.paths or self.blockers:
+                raise ValueError("error graph result requires errors only")
         return self

@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-当前处于 **Phase 1 收尾：可运行基线待提交推送**。Phase 0 已于 2026-08-09 完成退出验收，Phase 1 本地代码与退出验证已于 2026-08-12 通过。
+当前处于 **Phase 2 收尾：确定性分析基线已实现并通过本地验收**。Phase 1 基线已提交并推送，Phase 2 于 2026-08-13 完成指标边界、三类根因、证据图和三个 Agent Tool。
 
 已完成：
 
@@ -21,13 +21,13 @@
 - SQLite/SQLAlchemy 五表持久化、Repository、事务回滚和初始化命令已实现。
 - 不依赖 LLM 的库存指标、基础风险、风险清单筛选与金额排序已实现。
 - FastAPI `/health`、`/api/v1/analysis`、`/api/v1/risks` 已实现并完成真实 Uvicorn 请求验证。
-- 151 项自动化测试与 Ruff 静态检查已通过。
+- 三类确定性根因、受限 NetworkX 证据图和三个强类型 Agent Tool 已实现。
+- 186 项自动化测试与 Ruff 静态检查已通过。
 - Python 3.11.9 隔离环境、精确依赖锁文件、Git 与远程仓库已就绪。
 
 尚未完成：
 
-- Agent 工作流、评测集和演示页面。
-- Phase 2 的三类根因评分、证据图和 Agent Tool。
+- Phase 3 LangGraph Agent 工作流，以及 Phase 4 评测集和演示页面。
 
 ## MVP 能力
 
@@ -107,4 +107,4 @@ python -m pytest -p no:cacheprovider
 python -m ruff check .
 ```
 
-当前唯一 Phase 1 收尾项是复核 diff、提交并推送可运行基线；完成后再进入 Phase 2。
+当前下一步是提交并推送 Phase 2 确定性分析基线；完成后进入 Phase 3 Agent 工作流。

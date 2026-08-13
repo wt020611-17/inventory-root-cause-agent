@@ -12,6 +12,8 @@ from app.domain.entities import (
     Warehouse,
 )
 from app.domain.enums import (
+    EvidenceNodeType,
+    EvidenceRelationType,
     InventoryRiskLevel,
     MovementType,
     ProductionOrderStatus,
@@ -21,7 +23,11 @@ from app.domain.enums import (
 )
 from app.domain.results import (
     AnalysisResult,
+    EvidenceGraphEdge,
+    EvidenceGraphNode,
+    EvidenceGraphResult,
     EvidenceItem,
+    EvidencePath,
     InventoryMetrics,
     MetricValue,
     ResultMetadata,
@@ -35,6 +41,12 @@ __all__ = [
     "AnalysisThresholds",
     "AnalysisResult",
     "EvidenceItem",
+    "EvidenceGraphEdge",
+    "EvidenceGraphNode",
+    "EvidenceGraphResult",
+    "EvidenceNodeType",
+    "EvidencePath",
+    "EvidenceRelationType",
     "InventoryMovement",
     "InventoryMetrics",
     "InventoryRiskLevel",

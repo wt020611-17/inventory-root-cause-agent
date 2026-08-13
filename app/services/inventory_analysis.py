@@ -6,6 +6,7 @@ from decimal import Decimal
 from app.domain.enums import InventoryRiskLevel, MovementType, ResultStatus
 from app.domain.results import (
     AnalysisResult,
+    EvidenceItem,
     InventoryMetrics,
     MetricValue,
     ResultMetadata,
@@ -60,7 +61,23 @@ class InventoryAnalysisService:
                 unit_cost=material.unit_cost,
                 movements=movements,
             )
+            evidence = [
+                EvidenceItem(
+                    evidence_id="EVI-INVENTORY-AGGREGATE",
+                    source_type="inventory_movement_aggregate",
+                    source_id=f"{material_id}:{warehouse_id}:{as_of_date.isoformat()}",
+                    summary="库存指标由分析日期前的合成库存流水聚合得出",
+                    facts={
+                        "movement_count": len(movements),
+                        "current_stock": metrics.current_stock.value,
+                        "first_receipt_date": metrics.first_receipt_date,
+                        "last_consumption_date": metrics.last_consumption_date,
+                    },
+                )
+            ]
             blockers: list[str] = []
+            if any(item.posted_at.date() > as_of_date for item in movements):
+                blockers.append("future_movement")
             if metrics.current_stock.value is not None and metrics.current_stock.value < 0:
                 blockers.append("negative_current_stock")
             if metrics.days_without_consumption.value is None:
@@ -74,6 +91,7 @@ class InventoryAnalysisService:
                         risk_level=InventoryRiskLevel.DATA_QUALITY_BLOCKED,
                         conclusion_allowed=False,
                     ),
+                    evidence=evidence,
                     blockers=blockers,
                 )
 
@@ -82,6 +100,7 @@ class InventoryAnalysisService:
                 message="库存指标与基础风险计算完成",
                 metrics=metrics,
                 risk=self._assess_risk(metrics),
+                evidence=evidence,
             )
         except Exception:
             # 外部结果只暴露稳定错误类别；底层异常细节进入受控日志而不是响应。
@@ -198,14 +217,47 @@ class InventoryAnalysisService:
             else (current_stock / average_daily if average_daily > 0 else Decimal("0"))
         )
 
+        first_receipt_date = min(receipt_dates) if receipt_dates else None
+        last_consumption_date = (
+            max(item.posted_at.date() for item in effective_consumption)
+            if effective_consumption
+            else None
+        )
+        protected = (
+            first_receipt_date is not None
+            and 0 <= (as_of_date - first_receipt_date).days
+            < self._thresholds.new_material_protection_days
+        )
+        high_coverage = average_daily == 0 or (
+            coverage_value is not None
+            and coverage_value >= self._thresholds.coverage_days_threshold
+        )
+        stagnant = (
+            current_stock
+            if current_stock > 0
+            and days_without_consumption is not None
+            and days_without_consumption >= self._thresholds.slow_moving_days
+            and high_coverage
+            and not protected
+            else Decimal("0")
+        )
+
         return InventoryMetrics(
             material_id=material_id,
             warehouse_id=warehouse_id,
             current_stock=MetricValue(value=current_stock, unit="unit", complete=True),
+            first_receipt_date=first_receipt_date,
+            last_consumption_date=last_consumption_date,
             days_without_consumption=MetricValue(
                 value=days_without_consumption,
                 unit="day",
                 complete=reference_date is not None,
+            ),
+            effective_consumption_quantity=MetricValue(
+                value=window_consumption,
+                unit="unit",
+                observation_window_days=actual_window_days,
+                complete=True,
             ),
             average_daily_consumption=MetricValue(
                 value=average_daily,
@@ -216,13 +268,19 @@ class InventoryAnalysisService:
             coverage_days=MetricValue(
                 value=coverage_value, unit="day", complete=True
             ),
+            stagnant_quantity=MetricValue(
+                value=stagnant,
+                unit="unit",
+                complete=True,
+            ),
             stagnant_amount=MetricValue(
-                value=current_stock * unit_cost if unit_cost is not None else None,
+                value=stagnant * unit_cost if unit_cost is not None else None,
                 unit="currency",
                 complete=unit_cost is not None,
             ),
             infinite_coverage=infinite_coverage,
             partial_window=actual_window_days < self._thresholds.analysis_window_days,
+            new_material_protected=protected,
         )
 
     def _assess_risk(self, metrics: InventoryMetrics) -> RiskAssessment:
@@ -234,6 +292,7 @@ class InventoryAnalysisService:
         base_risk = (
             stock > 0
             and days >= self._thresholds.slow_moving_days
+            and not metrics.new_material_protected
             and (
                 average == 0
                 or (

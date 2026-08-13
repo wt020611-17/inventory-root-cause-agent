@@ -6,6 +6,7 @@ import pytest
 
 from app.domain.entities import InventoryMovement, Material, Warehouse
 from app.domain.enums import InventoryRiskLevel, MovementType, ResultStatus
+from app.domain.results import InventoryMetrics, MetricValue
 from app.domain.thresholds import AnalysisThresholds
 from app.repositories.database import create_sqlite_engine, create_tables, session_scope
 from app.repositories.sqlalchemy_repository import SqlAlchemyInventoryRepository
@@ -268,3 +269,174 @@ def test_risk_list_repository_failure_is_error_not_empty() -> None:
     assert result.metadata.status is ResultStatus.ERROR
     assert result.items == []
     assert result.errors == ["repository_error"]
+
+
+def make_risk_metrics(*, days: str, coverage: str | None, average: str = "1"):
+    """直接构造边界指标，隔离验证风险规则的包含关系。"""
+    return InventoryMetrics(
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        current_stock=MetricValue(value="120", unit="unit", complete=True),
+        first_receipt_date=date(2025, 1, 1),
+        days_without_consumption=MetricValue(value=days, unit="day", complete=True),
+        average_daily_consumption=MetricValue(
+            value=average,
+            unit="unit/day",
+            observation_window_days=90,
+            complete=True,
+        ),
+        coverage_days=MetricValue(value=coverage, unit="day", complete=True),
+        stagnant_amount=MetricValue(value="1200", unit="currency", complete=True),
+        infinite_coverage=coverage is None,
+    )
+
+
+@pytest.mark.parametrize(
+    ("days", "coverage", "expected"),
+    [
+        ("89", "120", InventoryRiskLevel.NORMAL),
+        ("90", "119", InventoryRiskLevel.NORMAL),
+        ("90", "120", InventoryRiskLevel.SLOW_MOVING),
+        ("179", None, InventoryRiskLevel.SLOW_MOVING),
+        ("180", None, InventoryRiskLevel.NON_MOVING),
+    ],
+)
+def test_risk_boundaries_are_inclusive_only_at_configured_thresholds(
+    days: str,
+    coverage: str | None,
+    expected: InventoryRiskLevel,
+) -> None:
+    """覆盖 89/90、179/180 与 119/120 三组精确边界。"""
+    service = InventoryAnalysisService(BrokenRepository(), AnalysisThresholds())
+    average = "0" if coverage is None else "1"
+
+    result = service._assess_risk(
+        make_risk_metrics(days=days, coverage=coverage, average=average)
+    )
+
+    assert result.risk_level is expected
+
+
+class MovementRepository:
+    """用给定流水验证保护期、调拨和未来事实边界。"""
+
+    def __init__(self, movements) -> None:
+        self._movements = movements
+
+    def get_material(self, material_id: str):
+        return Material(
+            material_id=material_id,
+            name="边界物料",
+            category="测试",
+            unit_cost="2",
+            created_date=date(2025, 1, 1),
+        )
+
+    def get_warehouse(self, warehouse_id: str):
+        return Warehouse(warehouse_id=warehouse_id, name="测试仓", region="测试")
+
+    def list_movements(self, *, material_id: str, warehouse_id: str, as_of_date: date):
+        return self._movements
+
+
+def make_movement(identifier: str, movement_type: MovementType, quantity: str, day: date):
+    return InventoryMovement(
+        movement_id=identifier,
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        movement_type=movement_type,
+        quantity=quantity,
+        posted_at=datetime(day.year, day.month, day.day, tzinfo=UTC),
+    )
+
+
+def test_new_material_protection_suppresses_stagnant_risk_and_amount() -> None:
+    movements = [
+        make_movement(
+            "MOV-SYN-RECEIPT", MovementType.PURCHASE_RECEIPT, "100", date(2026, 3, 10)
+        )
+    ]
+    service = InventoryAnalysisService(MovementRepository(movements), AnalysisThresholds())
+
+    result = service.analyze(
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        as_of_date=date(2026, 3, 31),
+        trace_id="trace-protection",
+    )
+
+    assert result.metrics.new_material_protected is True
+    assert result.metrics.stagnant_quantity.value == 0
+    assert result.metrics.stagnant_amount.value == 0
+    assert result.risk.risk_level is InventoryRiskLevel.NORMAL
+
+
+def test_transfer_does_not_reset_last_effective_consumption_date() -> None:
+    movements = [
+        make_movement(
+            "MOV-SYN-RECEIPT", MovementType.PURCHASE_RECEIPT, "100", date(2025, 1, 1)
+        ),
+        make_movement(
+            "MOV-SYN-ISSUE", MovementType.SALES_ISSUE, "-10", date(2025, 10, 1)
+        ),
+        make_movement(
+            "MOV-SYN-TRANSFER", MovementType.TRANSFER_IN, "10", date(2026, 3, 30)
+        ),
+    ]
+    service = InventoryAnalysisService(MovementRepository(movements), AnalysisThresholds())
+
+    result = service.analyze(
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        as_of_date=date(2026, 3, 31),
+        trace_id="trace-transfer",
+    )
+
+    assert result.metrics.last_consumption_date == date(2025, 10, 1)
+    assert result.metrics.days_without_consumption.value == 181
+
+
+def test_future_consumption_is_quality_blocked() -> None:
+    movements = [
+        make_movement(
+            "MOV-SYN-RECEIPT", MovementType.PURCHASE_RECEIPT, "100", date(2026, 1, 1)
+        ),
+        make_movement(
+            "MOV-SYN-FUTURE", MovementType.SALES_ISSUE, "-1", date(2026, 4, 1)
+        ),
+    ]
+    service = InventoryAnalysisService(MovementRepository(movements), AnalysisThresholds())
+
+    result = service.analyze(
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        as_of_date=date(2026, 3, 31),
+        trace_id="trace-future",
+    )
+
+    assert result.metadata.status is ResultStatus.BLOCKED
+    assert "future_movement" in result.blockers
+
+
+def test_zero_current_stock_has_zero_stagnant_quantity_and_amount() -> None:
+    movements = [
+        make_movement(
+            "MOV-SYN-RECEIPT", MovementType.PURCHASE_RECEIPT, "100", date(2025, 1, 1)
+        ),
+        make_movement(
+            "MOV-SYN-ISSUE", MovementType.SALES_ISSUE, "-100", date(2025, 1, 2)
+        ),
+    ]
+    service = InventoryAnalysisService(MovementRepository(movements), AnalysisThresholds())
+
+    result = service.analyze(
+        material_id="MAT-SYN-BOUNDARY",
+        warehouse_id="WH-SYN-01",
+        as_of_date=date(2026, 3, 31),
+        trace_id="trace-zero-stock",
+    )
+
+    assert result.metrics.current_stock.value == 0
+    assert result.metrics.stagnant_quantity.value == 0
+    assert result.metrics.stagnant_amount.value == 0
+    assert result.risk.risk_level is InventoryRiskLevel.NORMAL

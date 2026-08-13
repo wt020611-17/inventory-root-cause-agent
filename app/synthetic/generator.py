@@ -159,7 +159,7 @@ def generate_synthetic_dataset(
     add_movement("MAT-SYN-BLOCKED", MovementType.SALES_ISSUE, -20, date(2026, 2, 1), "SO-SYN-BLOCK")
 
     # 正常场景在分析日前持续消耗；需求下降场景前窗多、近窗少。
-    for offset in range(0, 90, 10):
+    for offset in range(0, 180, 10):
         add_movement(
             "MAT-SYN-NORMAL",
             MovementType.SALES_ISSUE,
