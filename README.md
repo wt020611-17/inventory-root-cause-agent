@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-当前 **Phase 2 已完成并推送**。Phase 2 于 2026-08-13 完成指标边界、三类根因、证据图和三个 Agent Tool，确定性分析基线提交为 `51e424f`。
+当前 **Phase 3 工程基线已完成**。2026-08-14 已完成 DeepSeek-compatible LLM 适配器、自然语言解析、会话补参、三工具编排、证据校验、一次受控重试、最大步数保护、模板降级和自然语言 API。真实 DeepSeek 调用等待本人配置 API Key 后补验。
 
 已完成：
 
@@ -22,12 +22,14 @@
 - 不依赖 LLM 的库存指标、基础风险、风险清单筛选与金额排序已实现。
 - FastAPI `/health`、`/api/v1/analysis`、`/api/v1/risks` 已实现并完成真实 Uvicorn 请求验证。
 - 三类确定性根因、受限 NetworkX 证据图和三个强类型 Agent Tool 已实现。
-- 186 项自动化测试与 Ruff 静态检查已通过。
+- Phase 3 DeepSeek 配置、Agent State、输入解析、会话存储和完整 LangGraph 工作流已实现。
+- `/api/v1/chat` 与 `/api/v1/tools` 已实现；无密钥时核心分析仍可用。
+- 207 项自动化测试、Ruff、`pip check` 和 SDK 导入检查已通过。
 - Python 3.11.9 隔离环境、精确依赖锁文件、Git 与远程仓库已就绪。
 
 尚未完成：
 
-- Phase 3 LangGraph Agent 工作流，以及 Phase 4 评测集和演示页面。
+- 本地 DeepSeek API Key 配置和真实调用验收，以及 Phase 4 评测集和演示页面。
 
 ## MVP 能力
 
@@ -97,6 +99,17 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - `GET http://127.0.0.1:8000/health`
 - `POST http://127.0.0.1:8000/api/v1/analysis`
 - `POST http://127.0.0.1:8000/api/v1/risks`
+- `POST http://127.0.0.1:8000/api/v1/chat`
+- `GET http://127.0.0.1:8000/api/v1/tools`
+
+配置 DeepSeek（可选；无密钥时自动使用确定性模板降级）：
+
+```powershell
+Copy-Item .env.example .env
+# 仅在本地 .env 中填写：DEEPSEEK_API_KEY=你的密钥
+```
+
+`.env` 已被 Git 忽略。不要把密钥写入源码、文档、命令历史或聊天记录。
 
 运行质量门：
 
@@ -107,4 +120,4 @@ python -m pytest -p no:cacheprovider
 python -m ruff check .
 ```
 
-当前下一步是进入 Phase 3 LangGraph Agent 工作流。
+当前下一步是本人配置 DeepSeek API Key 后执行一次真实调用验收；无密钥 Phase 3 基线已经可运行。

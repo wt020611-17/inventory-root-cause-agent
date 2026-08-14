@@ -12,6 +12,18 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
+from app.agent import (
+    TOOL_DESCRIPTIONS,
+    AgentRequest,
+    AgentResponse,
+    AgentSettings,
+    AnalysisIntent,
+    InMemorySessionStore,
+    ToolDescriptor,
+    create_agent_llm,
+    invoke_agent,
+)
+from app.agent.llm import AgentLLM
 from app.api.models import (
     AnalysisRequest,
     HealthResponse,
@@ -24,15 +36,25 @@ from app.repositories.database import create_sqlite_engine, create_tables, sessi
 from app.repositories.sqlalchemy_repository import SqlAlchemyInventoryRepository
 from app.services.inventory_analysis import InventoryAnalysisService
 from app.synthetic.generator import generate_synthetic_dataset
+from app.tools import InventoryAgentTools
 
 
 def create_app(
     *,
     database_url: str = "sqlite+pysqlite:///./inventory_agent.db",
     seed: int = 20260812,
+    agent_settings: AgentSettings | None = None,
+    agent_llm: AgentLLM | None = None,
+    session_store: InMemorySessionStore | None = None,
 ) -> FastAPI:
     """创建应用，并在生命周期启动阶段初始化固定 seed 合成数据库。"""
     engine = create_sqlite_engine(database_url)
+    resolved_settings = agent_settings or AgentSettings()
+    resolved_llm = agent_llm or create_agent_llm(resolved_settings)
+    resolved_sessions = session_store or InMemorySessionStore(
+        ttl_seconds=resolved_settings.session_ttl_seconds,
+        max_turns=resolved_settings.session_max_turns,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -42,6 +64,9 @@ def create_app(
             if repository.count_records()["materials"] == 0:
                 repository.add_dataset(generate_synthetic_dataset(seed=seed))
         app.state.engine = engine
+        app.state.agent_settings = resolved_settings
+        app.state.agent_llm = resolved_llm
+        app.state.agent_sessions = resolved_sessions
         yield
         engine.dispose()
 
@@ -114,6 +139,47 @@ def create_app(
             category=payload.category,
             as_of_date=payload.as_of_date,
             trace_id=trace_id,
+        )
+
+    @application.get("/api/v1/tools", response_model=list[ToolDescriptor])
+    def list_agent_tools() -> list[ToolDescriptor]:
+        """返回 Agent 可选择的受控工具，不暴露内部提示词或密钥。"""
+        requirements = {
+            AnalysisIntent.LIST_INVENTORY_RISKS: ["as_of_date"],
+            AnalysisIntent.ANALYZE_MATERIAL_ROOT_CAUSE: [
+                "material_id",
+                "warehouse_id",
+                "as_of_date",
+            ],
+            AnalysisIntent.TRACE_EVIDENCE: [
+                "material_id",
+                "warehouse_id",
+                "as_of_date",
+            ],
+        }
+        return [
+            ToolDescriptor(
+                name=intent.value,
+                description=description,
+                required_fields=requirements[intent],
+            )
+            for intent, description in TOOL_DESCRIPTIONS.items()
+        ]
+
+    @application.post("/api/v1/chat", response_model=AgentResponse)
+    def chat(
+        payload: AgentRequest,
+        session: Annotated[Session, Depends(get_session)],
+        request: Request,
+    ) -> AgentResponse:
+        """执行自然语言库存分析；无模型密钥时自动使用确定性降级路径。"""
+        repository = SqlAlchemyInventoryRepository(session)
+        return invoke_agent(
+            payload,
+            tools=InventoryAgentTools(repository),
+            llm=request.app.state.agent_llm,
+            sessions=request.app.state.agent_sessions,
+            settings=request.app.state.agent_settings,
         )
 
     return application
