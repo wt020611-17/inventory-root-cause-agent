@@ -120,4 +120,4 @@ python -m pytest -p no:cacheprovider
 python -m ruff check .
 ```
 
-当前下一步是进入 Phase 4 Agent 评测集。
+当前下一步是下午进入 Phase 3 教学模式；完成教学复盘后再进入 Phase 4 Agent 评测集。
