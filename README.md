@@ -46,7 +46,7 @@
 - Ruff、`pip check`、安全扫描和本地 API/Streamlit 健康检查已通过。
 - Python 3.11.9 隔离环境、精确依赖锁文件、Git 与远程仓库已就绪。
 
-最终验证摘要保存在 `reports/final_verification.json`；发布标签与远程状态由 Git 交付记录确认。
+最终验证摘要保存在 `reports/final_verification.json`；MVP 功能提交为 `4c29fa8`，发布标签为 `v0.1.0`，远程历史合并提交为 `aaa3d28`，最终交付记录已同步至 `main`。
 
 ## MVP 能力
 
@@ -223,4 +223,4 @@ python scripts/security_scan.py
 
 性能报告保存在 `benchmarks/results/performance_baseline.json`，记录了 Python/操作系统/处理器、数据规模、预热和测量方法、P50/P95/最大值以及图查询限制。该基线不包含 LLM 网络调用，也不声称未经测量的提升百分比。
 
-当前进入 `v0.1.0` 发布与交付记录阶段；后续功能仅按真实需求增量维护。
+`v0.1.0` 已完成发布；项目进入 Portfolio 维护状态，后续功能仅按真实需求增量维护。

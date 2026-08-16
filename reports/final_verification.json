@@ -56,6 +56,13 @@
     "test_client_dependency": "httpx2==2.10.0",
     "deprecation_warnings": 0
   },
+  "release": {
+    "feature_commit": "4c29fa8",
+    "remote_history_merge_commit": "aaa3d28",
+    "tag": "v0.1.0",
+    "remote_main_pushed": true,
+    "remote_tag_pushed": true
+  },
   "core_commands": [
     "python -m pytest -p no:cacheprovider --cov=app --cov-report=term-missing --cov-report=json:reports/coverage.json",
     "python -m ruff check --no-cache .",
