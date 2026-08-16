@@ -1,0 +1,125 @@
+{
+  "dataset_version": "agent-eval-v1",
+  "seed": 20260812,
+  "generated_at": "2026-08-12T00:00:00Z",
+  "as_of_date": "2026-03-31",
+  "cases": [
+    {
+      "case_id": "normal_material",
+      "description": "正常物料根因查询不虚构候选根因",
+      "tags": ["normal", "root_cause"],
+      "turns": [{"question": "分析 MAT-SYN-NORMAL 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-NORMAL", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": []}
+    },
+    {
+      "case_id": "demand_drop",
+      "description": "需求下降单根因查询",
+      "tags": ["demand_drop", "root_cause"],
+      "turns": [{"question": "分析 MAT-SYN-DEMAND 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-DEMAND", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["DEMAND_DROP"], "evidence_required": true}
+    },
+    {
+      "case_id": "purchase_excess",
+      "description": "超量采购单根因查询",
+      "tags": ["purchase_excess", "root_cause"],
+      "turns": [{"question": "为什么 MAT-SYN-OVERBUY 在 WH-SYN-01 到 2026-03-31 形成库存风险"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-OVERBUY", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["PURCHASE_EXCESS"], "evidence_required": true}
+    },
+    {
+      "case_id": "production_delay",
+      "description": "生产延期单根因查询",
+      "tags": ["production_delay", "root_cause"],
+      "turns": [{"question": "归因 MAT-SYN-PROD 在 WH-SYN-01 截至 2026-03-31 的库存问题"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-PROD", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["PRODUCTION_DELAY"], "evidence_required": true}
+    },
+    {
+      "case_id": "multi_cause",
+      "description": "多根因稳定排序查询",
+      "tags": ["multi_cause", "root_cause"],
+      "turns": [{"question": "分析 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["PURCHASE_EXCESS", "PRODUCTION_DELAY"], "evidence_required": true}
+    },
+    {
+      "case_id": "risk_list",
+      "description": "风险清单意图选择正确工具",
+      "tags": ["tool_selection", "risk_list"],
+      "turns": [{"question": "列出 WH-SYN-01 截至 2026-03-31 的库存风险清单"}],
+      "expected": {"status": "ok", "intent": "list_inventory_risks", "selected_tool": "list_inventory_risks", "parameter_fields": {"warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "evidence_required": true}
+    },
+    {
+      "case_id": "trace_evidence",
+      "description": "证据追溯意图选择受限图工具",
+      "tags": ["tool_selection", "evidence_trace"],
+      "turns": [{"question": "追溯 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的证据路径"}],
+      "expected": {"status": "ok", "intent": "trace_evidence", "selected_tool": "trace_evidence", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "evidence_required": true}
+    },
+    {
+      "case_id": "missing_parameters",
+      "description": "缺少仓库和日期时只请求缺失字段",
+      "tags": ["missing_parameters", "clarification"],
+      "turns": [{"question": "分析 MAT-SYN-MULTI 的根因"}],
+      "expected": {"status": "needs_input", "intent": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": null, "as_of_date": null}, "missing_fields": ["warehouse_id", "as_of_date"]}
+    },
+    {
+      "case_id": "invalid_date",
+      "description": "非法日期不进入工具执行且要求补参",
+      "tags": ["invalid_parameters", "clarification"],
+      "turns": [{"question": "分析 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-02-30 的根因"}],
+      "expected": {"status": "needs_input", "intent": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": "WH-SYN-01", "as_of_date": null}, "missing_fields": ["as_of_date"]}
+    },
+    {
+      "case_id": "two_turn_completion",
+      "description": "第二轮补齐仓库和日期后完成根因分析",
+      "tags": ["two_turn", "session"],
+      "turns": [
+        {"question": "分析 MAT-SYN-MULTI 的根因"},
+        {"question": "仓库 WH-SYN-01，分析日期 2026-03-31"}
+      ],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["PURCHASE_EXCESS", "PRODUCTION_DELAY"], "evidence_required": true}
+    },
+    {
+      "case_id": "session_expiry",
+      "description": "会话过期后不复用旧物料和意图",
+      "tags": ["session_expiry", "safe_degradation"],
+      "safety_case": true,
+      "turns": [
+        {"question": "分析 MAT-SYN-MULTI 的根因"},
+        {"question": "仓库 WH-SYN-01，分析日期 2026-03-31", "advance_clock_seconds": 1801}
+      ],
+      "expected": {"status": "needs_input", "intent": "analyze_material_root_cause", "parameter_fields": {"material_id": null, "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "missing_fields": ["material_id"]}
+    },
+    {
+      "case_id": "empty_result",
+      "description": "无匹配物料返回 empty 而不是 error",
+      "tags": ["empty", "safe_degradation"],
+      "safety_case": true,
+      "turns": [{"question": "分析 MAT-SYN-EMPTY 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "empty", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-EMPTY", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}}
+    },
+    {
+      "case_id": "blocked_result",
+      "description": "坏数据阻断根因结论",
+      "tags": ["blocked", "safe_degradation"],
+      "safety_case": true,
+      "turns": [{"question": "分析 MAT-SYN-BLOCKED 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "blocked", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-BLOCKED", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": []}
+    },
+    {
+      "case_id": "dependency_failure",
+      "description": "数据库依赖失败返回稳定 error 且不泄露内部异常",
+      "tags": ["dependency_failure", "safe_degradation"],
+      "scenario": "dependency_failure",
+      "safety_case": true,
+      "turns": [{"question": "分析 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "error", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-MULTI", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}}
+    },
+    {
+      "case_id": "no_llm_fallback",
+      "description": "无 LLM 时使用确定性结果和模板摘要完成分析",
+      "tags": ["no_llm", "safe_degradation"],
+      "safety_case": true,
+      "turns": [{"question": "分析 MAT-SYN-DEMAND 在 WH-SYN-01 截至 2026-03-31 的根因"}],
+      "expected": {"status": "ok", "intent": "analyze_material_root_cause", "selected_tool": "analyze_material_root_cause", "parameter_fields": {"material_id": "MAT-SYN-DEMAND", "warehouse_id": "WH-SYN-01", "as_of_date": "2026-03-31"}, "root_causes": ["DEMAND_DROP"], "evidence_required": true, "llm_used": false}
+    }
+  ]
+}

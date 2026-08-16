@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "verified_on": "2026-08-16",
+  "project_version": "0.1.0",
+  "python_version": "3.11.9",
+  "status": "passed",
+  "quality_gates": {
+    "pytest": {
+      "passed": 227,
+      "failed": 0,
+      "warnings": 0
+    },
+    "branch_coverage": {
+      "percent": 91.27,
+      "minimum_percent": 90.0,
+      "passed": true
+    },
+    "ruff": "passed",
+    "pip_check": "passed",
+    "dependency_lock_matches_environment": true,
+    "security_scan": {
+      "status": "passed",
+      "issues": 0
+    },
+    "agent_evaluation": {
+      "cases": 15,
+      "tool_selection": "12/12",
+      "parameter_extraction": "15/15",
+      "task_completion": "15/15",
+      "evidence_completeness": "8/8",
+      "safe_degradation": "5/5"
+    },
+    "automated_demo": {
+      "passed": 4,
+      "total": 4,
+      "forced_no_llm": true
+    },
+    "performance": {
+      "runs_per_scenario": 30,
+      "structured_analysis_max_ms": 3.344,
+      "evidence_graph_max_ms": 3.263,
+      "agent_no_llm_max_ms": 77.63,
+      "target_max_ms": 2000.0,
+      "passed": true
+    },
+    "cold_start": {
+      "python_version": "3.11.9",
+      "status": "passed",
+      "temporary_environment_removed": true
+    }
+  },
+  "dependency_audit": {
+    "unused_direct_dependencies_removed": [
+      "httpx"
+    ],
+    "test_client_dependency": "httpx2==2.10.0",
+    "deprecation_warnings": 0
+  },
+  "core_commands": [
+    "python -m pytest -p no:cacheprovider --cov=app --cov-report=term-missing --cov-report=json:reports/coverage.json",
+    "python -m ruff check --no-cache .",
+    "python -m pip check",
+    "python -m evals.runners.agent_eval",
+    "python -m benchmarks.run_performance",
+    "python -m scripts.run_demo_verification",
+    "python scripts/security_scan.py"
+  ]
+}

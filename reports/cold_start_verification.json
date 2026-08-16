@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "verified_on": "2026-08-16",
+  "python_version": "3.11.9",
+  "install_command": "python -m pip install .[dev,ui]",
+  "environment": "new temporary virtual environment",
+  "checks": {
+    "dependency_check": "passed",
+    "core_imports": "passed",
+    "database_initialization": {
+      "status": "passed",
+      "materials": 18,
+      "warehouses": 2,
+      "movements": 360,
+      "purchase_orders": 24,
+      "production_orders": 18
+    },
+    "pytest": {
+      "status": "passed",
+      "passed": 226,
+      "warnings": 1
+    },
+    "ruff": "passed",
+    "security_scan": {
+      "status": "passed",
+      "issues": 0
+    },
+    "api_health": "passed",
+    "streamlit_health": "passed",
+    "no_llm_chat": {
+      "status": "passed",
+      "llm_used": false,
+      "selected_tool": "analyze_material_root_cause"
+    },
+    "developer_absolute_path_dependency": "not_detected",
+    "temporary_environment_removed": true
+  }
+}

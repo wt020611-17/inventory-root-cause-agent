@@ -1,0 +1,82 @@
+{
+  "benchmark_version": "performance-baseline-v1",
+  "measured_at": "2026-08-16T04:24:06.550126Z",
+  "passed": true,
+  "seed": 20260812,
+  "as_of_date": "2026-03-31",
+  "warmup_runs": 5,
+  "measured_runs": 30,
+  "target_max_ms": 2000.0,
+  "metrics": {
+    "structured_analysis": {
+      "runs": 30,
+      "min_ms": 1.678,
+      "median_ms": 1.876,
+      "p95_ms": 3.233,
+      "max_ms": 3.344,
+      "mean_ms": 2.147
+    },
+    "evidence_graph": {
+      "runs": 30,
+      "min_ms": 1.756,
+      "median_ms": 1.948,
+      "p95_ms": 2.921,
+      "max_ms": 3.263,
+      "mean_ms": 2.124
+    },
+    "agent_no_llm": {
+      "runs": 30,
+      "min_ms": 20.25,
+      "median_ms": 27.743,
+      "p95_ms": 30.68,
+      "max_ms": 77.63,
+      "mean_ms": 28.578
+    }
+  },
+  "target_checks": {
+    "structured_analysis_max_under_2000ms": true,
+    "evidence_graph_max_under_2000ms": true,
+    "agent_no_llm_max_under_2000ms": true
+  },
+  "reliability_checks": {
+    "structured_analysis_stable": true,
+    "evidence_graph_stable": true,
+    "agent_no_llm_stable": true,
+    "all_graph_limits_enforced": true
+  },
+  "graph_limits": {
+    "configured_max_hops": 2,
+    "configured_max_nodes": 50,
+    "configured_timeout_ms": 100,
+    "max_hops_enforced": true,
+    "max_nodes_enforced": true,
+    "timeout_enforced": true
+  },
+  "dataset_counts": {
+    "materials": 18,
+    "warehouses": 2,
+    "movements": 360,
+    "purchase_orders": 24,
+    "production_orders": 18
+  },
+  "environment": {
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "logical_cpu_count": 8,
+    "database": "SQLite in-memory StaticPool"
+  },
+  "methodology": [
+    "SQLite in-memory StaticPool；初始化与合成数据写入不计入单次延迟。",
+    "每条链路先预热，再使用 perf_counter_ns 连续串行测量。",
+    "结构化分析固定为 MAT-SYN-MULTI × WH-SYN-01 × 2026-03-31。",
+    "Agent 链路强制禁用 LLM，避免网络波动混入本地基线。",
+    "目标使用最严格的实测最大值小于 2000ms，不使用虚构提升百分比。"
+  ],
+  "diagnostic": {
+    "slowest_component_by_p95": "agent_no_llm",
+    "slowest_p95_ms": 30.68,
+    "target_action": "无需优化；所有本地链路达到目标。"
+  }
+}

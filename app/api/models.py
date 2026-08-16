@@ -44,3 +44,13 @@ class InvalidRequestResponse(BaseModel):
     message: str = "请求参数校验失败"
     trace_id: str = Field(min_length=1)
     details: list[dict] = Field(default_factory=list)
+
+
+class InternalErrorResponse(BaseModel):
+    """未处理异常的稳定对外错误，不包含堆栈与内部细节。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = "internal_error"
+    message: str = "服务暂时不可用，请稍后重试"
+    trace_id: str = Field(min_length=1)

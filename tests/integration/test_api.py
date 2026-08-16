@@ -163,3 +163,74 @@ def test_database_failure_maps_to_error_without_leaking_details(client: TestClie
     assert body["metadata"]["status"] == "error"
     assert body["errors"] == ["repository_error"]
     assert "sql" not in response.text.lower()
+
+
+def test_agent_tools_endpoint_lists_three_controlled_tools(client: TestClient) -> None:
+    response = client.get("/api/v1/tools")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert {item["name"] for item in body} == {
+        "list_inventory_risks",
+        "analyze_material_root_cause",
+        "trace_evidence",
+    }
+    assert all(item["required_fields"] for item in body)
+
+
+def test_chat_extracts_parameters_and_degrades_without_llm_key(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/chat",
+        json={
+            "question": "分析 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的根因",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["selected_tool"] == "analyze_material_root_cause"
+    assert body["parameters"] == {
+        "material_id": "MAT-SYN-MULTI",
+        "warehouse_id": "WH-SYN-01",
+        "as_of_date": "2026-03-31",
+        "category": None,
+    }
+    assert body["result"]["metadata"]["trace_id"] == body["trace_id"]
+    assert body["evidence"]
+    assert body["llm_used"] is False
+    assert "reasoning_content" not in response.text
+    assert "chain-of-thought" not in response.text.lower()
+
+
+def test_chat_two_turns_only_asks_for_missing_context(client: TestClient) -> None:
+    first = client.post(
+        "/api/v1/chat",
+        json={
+            "question": "分析 MAT-SYN-MULTI 的根因",
+            "session_id": "api-two-turn",
+        },
+    )
+    second = client.post(
+        "/api/v1/chat",
+        json={
+            "question": "仓库 WH-SYN-01，日期 2026-03-31",
+            "session_id": "api-two-turn",
+        },
+    )
+
+    assert first.json()["status"] == "needs_input"
+    assert first.json()["missing_fields"] == ["warehouse_id", "as_of_date"]
+    assert second.json()["status"] == "ok"
+    assert second.json()["parameters"]["material_id"] == "MAT-SYN-MULTI"
+
+
+def test_chat_rejects_unknown_input_fields(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/chat",
+        json={"question": "分析库存", "api_key": "must-not-be-accepted"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "invalid_request"
+    assert "must-not-be-accepted" not in response.text

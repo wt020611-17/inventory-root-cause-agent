@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "verified_at": "2026-08-16T04:20:08.544609+00:00",
+  "seed": 20260812,
+  "warehouse_id": "WH-SYN-01",
+  "as_of_date": "2026-03-31",
+  "execution_mode": "forced_no_llm",
+  "summary": {
+    "case_count": 4,
+    "passed_count": 4,
+    "failed_count": 0,
+    "all_passed": true
+  },
+  "cases": [
+    {
+      "case_id": "normal_material",
+      "title": "正常物料",
+      "question": "分析 MAT-SYN-NORMAL 在 WH-SYN-01 截至 2026-03-31 的根因",
+      "status": "ok",
+      "selected_tool": "analyze_material_root_cause",
+      "llm_used": false,
+      "message": "已完成确定性分析，详见结构化指标与证据。",
+      "metrics": {
+        "current_stock": "120.0000",
+        "days_without_consumption": "0",
+        "coverage_days": "120",
+        "stagnant_amount": "0.0000"
+      },
+      "risk_level": "NORMAL",
+      "root_causes": [],
+      "all_candidates": [
+        {
+          "cause_type": "PURCHASE_EXCESS",
+          "score": "0",
+          "insufficient_evidence": true
+        },
+        {
+          "cause_type": "PRODUCTION_DELAY",
+          "score": "0",
+          "insufficient_evidence": true
+        }
+      ],
+      "evidence_ids": [],
+      "evidence_count": 0,
+      "path_count": 0,
+      "action_summaries": [
+        "request_initialized",
+        "input_parsed",
+        "tool_selected:analyze_material_root_cause",
+        "tool_executed:analyze_material_root_cause",
+        "evidence_validated",
+        "template_summary_selected",
+        "response_organized"
+      ],
+      "checks": {
+        "status": true,
+        "llm_disabled": true,
+        "selected_tool": true,
+        "root_causes": true
+      },
+      "passed": true
+    },
+    {
+      "case_id": "multi_cause_material",
+      "title": "多根因物料",
+      "question": "分析 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的根因",
+      "status": "ok",
+      "selected_tool": "analyze_material_root_cause",
+      "llm_used": false,
+      "message": "已完成确定性分析，详见结构化指标与证据。",
+      "metrics": {
+        "current_stock": "300.0000",
+        "days_without_consumption": "211",
+        "coverage_days": null,
+        "stagnant_amount": "14400.00000000"
+      },
+      "risk_level": "NON_MOVING",
+      "root_causes": [
+        "PURCHASE_EXCESS",
+        "PRODUCTION_DELAY"
+      ],
+      "all_candidates": [
+        {
+          "cause_type": "PURCHASE_EXCESS",
+          "score": "1",
+          "insufficient_evidence": false
+        },
+        {
+          "cause_type": "PRODUCTION_DELAY",
+          "score": "1",
+          "insufficient_evidence": false
+        },
+        {
+          "cause_type": "DEMAND_DROP",
+          "score": "0",
+          "insufficient_evidence": true
+        }
+      ],
+      "evidence_ids": [
+        "EVI-PO-PO-SYN-MULTI",
+        "EVI-PRD-PRD-SYN-MULTI"
+      ],
+      "evidence_count": 2,
+      "path_count": 0,
+      "action_summaries": [
+        "request_initialized",
+        "input_parsed",
+        "tool_selected:analyze_material_root_cause",
+        "tool_executed:analyze_material_root_cause",
+        "evidence_validated",
+        "template_summary_selected",
+        "response_organized"
+      ],
+      "checks": {
+        "status": true,
+        "llm_disabled": true,
+        "selected_tool": true,
+        "root_causes": true
+      },
+      "passed": true
+    },
+    {
+      "case_id": "multi_cause_evidence",
+      "title": "多根因证据路径",
+      "question": "追溯 MAT-SYN-MULTI 在 WH-SYN-01 截至 2026-03-31 的证据路径",
+      "status": "ok",
+      "selected_tool": "trace_evidence",
+      "llm_used": false,
+      "message": "已完成确定性分析，详见结构化指标与证据。",
+      "metrics": {},
+      "risk_level": null,
+      "root_causes": [],
+      "all_candidates": [],
+      "evidence_ids": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "evidence_count": 10,
+      "path_count": 3,
+      "action_summaries": [
+        "request_initialized",
+        "input_parsed",
+        "tool_selected:trace_evidence",
+        "tool_executed:trace_evidence",
+        "evidence_validated",
+        "template_summary_selected",
+        "response_organized"
+      ],
+      "checks": {
+        "status": true,
+        "llm_disabled": true,
+        "selected_tool": true,
+        "evidence_paths": true
+      },
+      "passed": true
+    },
+    {
+      "case_id": "empty_material",
+      "title": "空结果与无 LLM 降级",
+      "question": "分析 MAT-SYN-EMPTY 在 WH-SYN-01 截至 2026-03-31 的根因",
+      "status": "empty",
+      "selected_tool": "analyze_material_root_cause",
+      "llm_used": false,
+      "message": "查询成功，但没有匹配数据；请核对物料、仓库或分析日期。",
+      "metrics": {},
+      "risk_level": null,
+      "root_causes": [],
+      "all_candidates": [],
+      "evidence_ids": [],
+      "evidence_count": 0,
+      "path_count": 0,
+      "action_summaries": [
+        "request_initialized",
+        "input_parsed",
+        "tool_selected:analyze_material_root_cause",
+        "tool_executed:analyze_material_root_cause",
+        "evidence_validated",
+        "template_summary_selected",
+        "response_organized"
+      ],
+      "checks": {
+        "status": true,
+        "llm_disabled": true,
+        "selected_tool": true,
+        "root_causes": true
+      },
+      "passed": true
+    }
+  ]
+}

@@ -14,6 +14,7 @@ dependencies = [
   "fastapi>=0.115,<1.0",
   "langgraph>=0.4,<2.0",
   "networkx>=3.3,<4.0",
+  "openai>=2.0,<3.0",
   "pydantic>=2.10,<3.0",
   "pydantic-settings>=2.7,<3.0",
   "sqlalchemy>=2.0,<3.0",
@@ -23,7 +24,7 @@ dependencies = [
 # 开发依赖不进入生产运行时；ui 是后续演示界面的可选依赖组。
 [project.optional-dependencies]
 dev = [
-  "httpx>=0.28,<1.0",
+  "httpx2>=2.0,<3.0",
   "pytest>=8.3,<10.0",
   "pytest-cov>=6.0,<8.0",
   "ruff>=0.9,<1.0",
@@ -39,6 +40,15 @@ packages = ["app"]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q"
+
+# Phase 4.5 真实基线为 91%（含分支）；90% 门槛用于阻止明显回退。
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
 
 # Ruff 统一代码风格基线，目标 Python 版本与项目要求保持一致。
 [tool.ruff]

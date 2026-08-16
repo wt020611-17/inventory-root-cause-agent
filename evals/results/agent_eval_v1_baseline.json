@@ -1,0 +1,237 @@
+{
+  "dataset_version": "agent-eval-v1",
+  "evaluated_at": "2026-08-16T04:20:11.589720Z",
+  "passed": true,
+  "metrics": {
+    "tool_selection_accuracy": {
+      "passed": 12,
+      "total": 12,
+      "rate": 1.0
+    },
+    "parameter_extraction_accuracy": {
+      "passed": 15,
+      "total": 15,
+      "rate": 1.0
+    },
+    "task_completion_rate": {
+      "passed": 15,
+      "total": 15,
+      "rate": 1.0
+    },
+    "evidence_citation_completeness": {
+      "passed": 8,
+      "total": 8,
+      "rate": 1.0
+    },
+    "safe_degradation_pass_rate": {
+      "passed": 5,
+      "total": 5,
+      "rate": 1.0
+    }
+  },
+  "environment": {
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "b368c245b4ad992c26971464e411b744f9322671",
+    "pydantic": "2.13.4",
+    "sqlalchemy": "2.0.51",
+    "langgraph": "1.2.10"
+  },
+  "cases": [
+    {
+      "case_id": "normal_material",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "demand_drop",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "purchase_excess",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "production_delay",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "multi_cause",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "risk_list",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "list_inventory_risks",
+      "actual_selected_tool": "list_inventory_risks",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "trace_evidence",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "trace_evidence",
+      "actual_selected_tool": "trace_evidence",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "missing_parameters",
+      "passed": true,
+      "actual_status": "needs_input",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": null,
+      "tool_selection_pass": null,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "invalid_date",
+      "passed": true,
+      "actual_status": "needs_input",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": null,
+      "tool_selection_pass": null,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "two_turn_completion",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": null,
+      "failures": []
+    },
+    {
+      "case_id": "session_expiry",
+      "passed": true,
+      "actual_status": "needs_input",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": null,
+      "tool_selection_pass": null,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": true,
+      "failures": []
+    },
+    {
+      "case_id": "empty_result",
+      "passed": true,
+      "actual_status": "empty",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": true,
+      "failures": []
+    },
+    {
+      "case_id": "blocked_result",
+      "passed": true,
+      "actual_status": "blocked",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": true,
+      "failures": []
+    },
+    {
+      "case_id": "dependency_failure",
+      "passed": true,
+      "actual_status": "error",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": null,
+      "safe_degradation_pass": true,
+      "failures": []
+    },
+    {
+      "case_id": "no_llm_fallback",
+      "passed": true,
+      "actual_status": "ok",
+      "actual_intent": "analyze_material_root_cause",
+      "actual_selected_tool": "analyze_material_root_cause",
+      "tool_selection_pass": true,
+      "parameter_extraction_pass": true,
+      "task_completion_pass": true,
+      "evidence_completeness_pass": true,
+      "safe_degradation_pass": true,
+      "failures": []
+    }
+  ]
+}
