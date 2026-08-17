@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "verified_on": "2026-08-16",
+  "project_version": "0.1.1",
+  "docker": {
+    "client_version": "29.6.2",
+    "server_version": "29.6.2",
+    "operating_system": "Docker Desktop",
+    "architecture": "x86_64"
+  },
+  "compose_config": "passed",
+  "image": {
+    "name": "inventory-root-cause-agent:0.1.1",
+    "build": "passed",
+    "base_image": "python:3.11.9-slim-bookworm"
+  },
+  "services": {
+    "api": {
+      "container_health": "healthy",
+      "http_status": "ok",
+      "version": "0.1.1"
+    },
+    "ui": {
+      "container_health": "healthy",
+      "http_status_code": 200,
+      "body": "ok"
+    }
+  },
+  "no_llm_agent_smoke": {
+    "status": "ok",
+    "selected_tool": "analyze_material_root_cause",
+    "llm_used": false,
+    "evidence_count": 2
+  },
+  "security": {
+    "runtime_user_uid": 999,
+    "runs_as_root": false,
+    "secret_baked_into_compose": false
+  },
+  "cleanup": {
+    "containers_removed": true,
+    "network_removed": true,
+    "synthetic_data_volume_removed": true
+  },
+  "status": "passed"
+}

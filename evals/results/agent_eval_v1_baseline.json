@@ -1,6 +1,6 @@
 {
   "dataset_version": "agent-eval-v1",
-  "evaluated_at": "2026-08-16T04:20:11.589720Z",
+  "evaluated_at": "2026-08-16T09:17:44.161670Z",
   "passed": true,
   "metrics": {
     "tool_selection_accuracy": {
@@ -32,7 +32,7 @@
   "environment": {
     "python": "3.11.9",
     "platform": "Windows-10-10.0.26200-SP0",
-    "git_commit": "b368c245b4ad992c26971464e411b744f9322671",
+    "git_commit": "e1783213f99703edd8a990a586ba372a31fa7656",
     "pydantic": "2.13.4",
     "sqlalchemy": "2.0.51",
     "langgraph": "1.2.10"

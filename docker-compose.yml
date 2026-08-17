@@ -1,0 +1,51 @@
+name: inventory-root-cause-agent
+
+services:
+  api:
+    build:
+      context: .
+    image: inventory-root-cause-agent:0.1.1
+    environment:
+      APP_ENV: container
+      DATABASE_URL: sqlite+pysqlite:////app/data/inventory_agent.db
+      LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - inventory-data:/app/data
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+    image: inventory-root-cause-agent:0.1.1
+    command:
+      - python
+      - -m
+      - streamlit
+      - run
+      - app/ui/streamlit_app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+    environment:
+      APP_ENV: container
+      LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    ports:
+      - "8501:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  inventory-data:

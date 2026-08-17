@@ -19,7 +19,7 @@
 
 ## 当前状态
 
-当前 **v0.1.0 MVP 功能与最终验收已完成**。Agent 评测、Streamlit、可观测性、安全、性能、冷启动、项目文档、自动化演示及求职材料均已形成可复现证据。
+当前 **v0.1.1、Phase 0～5 与最终验收已完成**。Agent 评测、Streamlit、可观测性、安全、性能、冷启动、Docker、项目文档、自动化演示及求职材料均已形成可复现证据。
 
 已完成：
 
@@ -40,13 +40,14 @@
 - 15 条版本化 Agent 评测样例、5 项指标、可复现运行器与 JSON 基线报告已完成。
 - Streamlit 演示页支持正常、多根因、证据追踪、空结果、质量阻断和无 LLM 模式。
 - API 与 Agent Tool 使用统一 JSON 审计字段，记录 Trace ID、耗时、工具、状态和错误类别，不记录请求正文或私有推理。
-- 固定 seed 最终性能基线连续测量 30 次：结构化分析最大 3.344 ms、证据图最大 3.263 ms、无 LLM Agent 最大 77.630 ms，均低于本地 2000 ms 目标。
-- 227 项自动化测试全部通过；`app` 分支覆盖率为 91.27%，并启用 90% 覆盖率门槛。
+- 固定 seed 最终性能基线连续测量 30 次：结构化分析最大 7.704 ms、证据图最大 6.960 ms、无 LLM Agent 最大 81.723 ms，均低于本地 2000 ms 目标。
+- 230 项自动化测试全部通过；`app` 分支覆盖率为 91.29%，并启用 90% 覆盖率门槛。
 - Python 3.11.9 全新虚拟环境已按 README 完成安装、数据初始化、测试、API/Streamlit 启动和无 LLM 请求复现。
 - Ruff、`pip check`、安全扫描和本地 API/Streamlit 健康检查已通过。
+- Docker Compose 的 API/UI 双服务完成真实镜像构建、健康检查、无密钥 Agent 请求和非 root 运行验收。
 - Python 3.11.9 隔离环境、精确依赖锁文件、Git 与远程仓库已就绪。
 
-最终验证摘要保存在 `reports/final_verification.json`；MVP 功能提交为 `4c29fa8`，发布标签为 `v0.1.0`，远程历史合并提交为 `aaa3d28`，最终交付记录已同步至 `main`。
+最终验证摘要保存在 `reports/final_verification.json`，容器证据保存在 `reports/container_verification.json`。原 MVP 功能标签为 `v0.1.0`；补齐 Phase 5、Docker 和全文件收尾后的版本为 `v0.1.1`。
 
 ## MVP 能力
 
@@ -114,6 +115,8 @@ reports/         # 覆盖率和冷启动验证证据
 scripts/         # 数据库初始化与安全扫描
 tests/           # 单元、集成、端到端、评测和性能测试
 docs/            # 业务口径、验收标准与技术契约
+Dockerfile       # Python 3.11 非 root API/UI 共用镜像
+docker-compose.yml # API、Streamlit、健康检查与合成数据卷
 ```
 
 ## 从零运行
@@ -159,6 +162,29 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ```powershell
 python -m streamlit run app/ui/streamlit_app.py
+```
+
+### Docker Compose 启动
+
+安装并启动 Docker Desktop 后，在仓库根目录执行：
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+API 使用 `http://127.0.0.1:8000`，Streamlit 使用 `http://127.0.0.1:8501`。Compose 不会把密钥写入镜像；如果当前环境未设置 `DEEPSEEK_API_KEY` 或仅传入空白值，两个服务仍以确定性降级模式启动。API 以非 root 用户运行，SQLite 存放在项目专用具名卷中。
+
+停止并保留合成数据库卷：
+
+```powershell
+docker compose down
+```
+
+如需同时删除项目生成的纯合成数据库卷：
+
+```powershell
+docker compose down -v
 ```
 
 配置 DeepSeek（可选；无密钥时自动使用确定性模板降级）：
@@ -215,7 +241,7 @@ python -m benchmarks.run_performance
 python scripts/security_scan.py
 ```
 
-覆盖率启用分支统计，真实基线为 91.27%，`pyproject.toml` 中的最低门槛为 90%。冷启动复现记录见 `reports/cold_start_verification.json`。
+覆盖率启用分支统计，最终真实基线为 91.29%，`pyproject.toml` 中的最低门槛为 90%。冷启动复现记录见 `reports/cold_start_verification.json`，容器验收见 `reports/container_verification.json`。
 
 当前评测基线：工具选择 12/12、参数抽取 15/15、任务完成 15/15、证据完整 8/8、安全降级 5/5。详细结果见 `evals/results/agent_eval_v1_baseline.json`；所有数字以评测命令可复现结果为准。
 
@@ -223,4 +249,4 @@ python scripts/security_scan.py
 
 性能报告保存在 `benchmarks/results/performance_baseline.json`，记录了 Python/操作系统/处理器、数据规模、预热和测量方法、P50/P95/最大值以及图查询限制。该基线不包含 LLM 网络调用，也不声称未经测量的提升百分比。
 
-`v0.1.0` 已完成发布；项目进入 Portfolio 维护状态，后续功能仅按真实需求增量维护。
+`v0.1.1` 已完成 Phase 0～5 收尾；项目进入 Portfolio 维护状态，后续功能仅按真实需求增量维护。

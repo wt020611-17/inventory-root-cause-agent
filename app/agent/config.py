@@ -39,4 +39,8 @@ class AgentSettings(BaseSettings):
 
     @property
     def llm_available(self) -> bool:
-        return self.llm_provider == "deepseek" and self.llm_api_key is not None
+        return (
+            self.llm_provider == "deepseek"
+            and self.llm_api_key is not None
+            and bool(self.llm_api_key.get_secret_value().strip())
+        )

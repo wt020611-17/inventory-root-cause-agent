@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 # 运行时依赖：这里只放应用启动和业务代码真正需要的库。
 [project]
 name = "inventory-root-cause-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evidence-grounded inventory root-cause analysis Agent using synthetic manufacturing data."
 readme = "README.md"
 requires-python = ">=3.11"

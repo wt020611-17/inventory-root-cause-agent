@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy import text
 from starlette.testclient import TestClient
 
+from app import __version__
 from app.main import create_app
 
 
@@ -22,10 +23,29 @@ def test_health_returns_version_without_internal_paths(client: TestClient) -> No
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.1.0"
+    assert response.json()["version"] == __version__
     assert response.json()["trace_id"]
     assert "sqlite" not in response.text.lower()
     assert "password" not in response.text.lower()
+
+
+def test_default_app_reads_database_url_from_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """容器等运行环境可以通过环境变量选择可写的持久化数据库。"""
+    database_path = tmp_path / "container-data" / "inventory_agent.db"
+    database_path.parent.mkdir()
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        f"sqlite+pysqlite:///{database_path.as_posix()}",
+    )
+
+    with TestClient(create_app(seed=7)) as environment_client:
+        response = environment_client.get("/health")
+
+    assert response.status_code == 200
+    assert database_path.is_file()
 
 
 def test_analysis_ok_response_contains_trace_and_metrics(client: TestClient) -> None:

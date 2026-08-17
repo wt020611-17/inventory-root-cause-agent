@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0",
   "verified_on": "2026-08-16",
-  "project_version": "0.1.0",
+  "project_version": "0.1.1",
   "python_version": "3.11.9",
   "status": "passed",
   "quality_gates": {
     "pytest": {
-      "passed": 227,
+      "passed": 230,
       "failed": 0,
       "warnings": 0
     },
     "branch_coverage": {
-      "percent": 91.27,
+      "percent": 91.29,
       "minimum_percent": 90.0,
       "passed": true
     },
@@ -37,9 +37,9 @@
     },
     "performance": {
       "runs_per_scenario": 30,
-      "structured_analysis_max_ms": 3.344,
-      "evidence_graph_max_ms": 3.263,
-      "agent_no_llm_max_ms": 77.63,
+      "structured_analysis_max_ms": 7.704,
+      "evidence_graph_max_ms": 6.96,
+      "agent_no_llm_max_ms": 81.723,
       "target_max_ms": 2000.0,
       "passed": true
     },
@@ -47,6 +47,16 @@
       "python_version": "3.11.9",
       "status": "passed",
       "temporary_environment_removed": true
+    },
+    "container": {
+      "status": "passed",
+      "compose_config": "passed",
+      "image_build": "passed",
+      "api_health": "healthy",
+      "ui_health": "healthy",
+      "no_llm_agent": "passed",
+      "runs_as_root": false,
+      "report": "reports/container_verification.json"
     }
   },
   "dependency_audit": {
@@ -57,9 +67,12 @@
     "deprecation_warnings": 0
   },
   "release": {
-    "feature_commit": "4c29fa8",
+    "original_mvp_feature_commit": "4c29fa8",
+    "original_mvp_tag": "v0.1.0",
     "remote_history_merge_commit": "aaa3d28",
-    "tag": "v0.1.0",
+    "closure_version": "0.1.1",
+    "closure_tag": "v0.1.1",
+    "completed_phases": "Phase 0-5",
     "remote_main_pushed": true,
     "remote_tag_pushed": true
   },
@@ -70,6 +83,9 @@
     "python -m evals.runners.agent_eval",
     "python -m benchmarks.run_performance",
     "python -m scripts.run_demo_verification",
-    "python scripts/security_scan.py"
+    "python scripts/security_scan.py",
+    "docker compose config --quiet",
+    "docker compose build",
+    "docker compose up -d"
   ]
 }

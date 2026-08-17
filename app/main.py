@@ -1,5 +1,6 @@
 """FastAPI 应用入口与 Phase 1 本地依赖装配。"""
 
+import os
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -13,6 +14,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
+from app import __version__
 from app.agent import (
     TOOL_DESCRIPTIONS,
     AgentRequest,
@@ -44,7 +46,7 @@ from app.tools import InventoryAgentTools
 
 def create_app(
     *,
-    database_url: str = "sqlite+pysqlite:///./inventory_agent.db",
+    database_url: str | None = None,
     seed: int = 20260812,
     agent_settings: AgentSettings | None = None,
     agent_llm: AgentLLM | None = None,
@@ -52,7 +54,12 @@ def create_app(
 ) -> FastAPI:
     """创建应用，并在生命周期启动阶段初始化固定 seed 合成数据库。"""
     configure_audit_logging()
-    engine = create_sqlite_engine(database_url)
+    resolved_database_url = (
+        database_url
+        or os.getenv("DATABASE_URL")
+        or "sqlite+pysqlite:///./inventory_agent.db"
+    )
+    engine = create_sqlite_engine(resolved_database_url)
     resolved_settings = agent_settings or AgentSettings()
     resolved_llm = agent_llm or create_agent_llm(resolved_settings)
     resolved_sessions = session_store or InMemorySessionStore(
@@ -76,7 +83,7 @@ def create_app(
 
     application = FastAPI(
         title="Inventory Root-Cause Agent",
-        version="0.1.0",
+        version=__version__,
         lifespan=lifespan,
     )
 
@@ -161,7 +168,7 @@ def create_app(
         request.state.result_status = "ok"
         return HealthResponse(
             status="ok",
-            version="0.1.0",
+            version=__version__,
             trace_id=request.state.trace_id,
         )
 

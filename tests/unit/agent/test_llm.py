@@ -80,3 +80,16 @@ def test_settings_mask_secret_and_without_key_selects_disabled_llm() -> None:
     assert "ds-secret-key" not in repr(settings)
     assert "ds-secret-key" not in settings.model_dump_json()
     assert isinstance(create_agent_llm(disabled), DisabledAgentLLM)
+
+
+@pytest.mark.parametrize("api_key", ["", "   "])
+def test_blank_api_key_selects_disabled_llm(api_key: str) -> None:
+    """Compose 等运行环境传入空白密钥时仍应安全降级。"""
+    settings = AgentSettings(
+        _env_file=None,
+        llm_provider="deepseek",
+        DEEPSEEK_API_KEY=SecretStr(api_key),
+    )
+
+    assert settings.llm_available is False
+    assert isinstance(create_agent_llm(settings), DisabledAgentLLM)
